@@ -1,0 +1,107 @@
+# Important notes before running the code, do the following:
+# 1 make sure all the files are within the same folder in order for this code to run smoothly.
+# 2 must install nmap from nmap.org
+# 3 install scapy in your terminal by this code: pip install scapy or pip3 install scapy
+
+# Task 1: Log File Analysis
+# This section reads a log file, filters it for suspicious entries, and writes these findings to a summary report.
+
+# Open the system log file and read lines
+with open('system_log.log', 'r') as file:
+    logs = file.readlines()
+
+# Filter suspicious log entries based on keywords
+suspicious_logs = [log for log in logs if 'failed' in log.lower() or 'unauthorized' in log.lower()]
+
+# Computing the suspicious entries to a summary report
+with open('summary_report.txt', 'w') as f:
+    f.write(f"Total suspicious logs found: {len(suspicious_logs)}\n")
+    for log in suspicious_logs:
+        f.write(log + '\n')
+
+# Task 2: System Performance Monitoring
+# This section monitors CPU and memory usage, logs the data to a file,
+# and sends an alert if CPU usage exceeds a specified threshold.
+
+import psutil  # Import the psutil library for system performance monitoring
+
+# Get CPU usage
+cpu_usage = psutil.cpu_percent(interval=1)
+print(f"CPU Usage: {cpu_usage}%")
+
+# Get Memory Usage
+memory_info = psutil.virtual_memory()
+print(f"Memory Usage: {memory_info.percent}%")
+
+# Log performance data to a file
+with open('performance_log.txt', 'a') as f:
+    f.write(f"CPU: {cpu_usage}%, Memory: {memory_info.percent}%\n")
+
+# Check for high CPU usage and print an alert if the threshold is exceeded
+if cpu_usage > 90:
+    print("ALERT: High CPU usage detected!")
+
+
+# Task 3: Alert Generation via Email
+# This section defines a function to send email alerts using Gmail's SMTP server.
+# The function is used to send an alert if CPU usage exceeds a specified threshold.
+
+import smtplib  # Import the smtplib library for email sending
+from email.message import EmailMessage  # This is used to construct a email message
+
+def send_alert(subject, body):
+    """Send an email alert for critical events like high CPU usage."""
+    # Creating the email message
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['Subject'] = subject
+    msg['From'] = 'ryanrasool52@gmail.com'  # Sender email address
+    msg['To'] = 'ryanrasool54@gmail.com'    # Recipient email address
+
+    # Set up the SMTP server and send the email
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        smtp.login('ryanrasool52@gmail.com', 'sajy munf xfnc euet')  # App-specific password, you have to enable Gmails 2 step to get this password.
+        smtp.send_message(msg)
+
+# Send an email alert if CPU usage is above 90%
+if cpu_usage > 90:
+    send_alert('High CPU Usage Alert', f'CPU usage is currently at {cpu_usage}%')
+
+
+# Task 4: Security Automation - Nmap Network Scan
+# This section runs an Nmap scan on the specified IP address and prints open ports and services.
+# Useful for monitoring network vulnerabilities.
+
+import subprocess  # Import subprocess to run external commands like nmap
+
+# Note: This script requires Nmap to be installed on the system for network scanning.
+# Please install Nmap from https://nmap.org and ensure it's in the system PATH.
+# or write bash in your terminal, then do sudo apt install nmap on a new line within the terminal
+# Without Nmap, the 'run_nmap' function will not work as intended.
+
+def run_nmap(target_ip):
+    """Run an Nmap scan on the specified IP address and print results."""
+    # Run Nmap with the -sV option to detect service versions on open ports, it can help detect vulnerabilities.
+    result = subprocess.run(['nmap', '-sV', target_ip], capture_output=True, text=True)
+    print(result.stdout)  # Print the output of the Nmap scan
+
+# Example usage: Scanning localhost
+run_nmap('127.0.0.1')
+
+# Task 4: Security Automation - Packet Sniffing with Scapy
+# do 'pip install scapy' or by 'pip3' in the TERMINAL
+
+from scapy.all import *  # Import sniff for capturing network packets
+from scapy.layers.inet import TCP, IP  # Import TCP and IP layers for packet analysis, basically defining it.
+
+# This section captures network packets on the specified interface, 
+# displaying the source and destination IP addresses of packets containing IP and TCP layers.
+
+def monitor_packets(pkt):
+    if pkt.haslayer(TCP) and pkt.haslayer(IP):
+        print(f"Source IP: {pkt[IP].src}, Destination IP: {pkt[IP].dst}")
+
+sniff(prn=monitor_packets, count=10)  # Capture 10 packets
+
+
+
